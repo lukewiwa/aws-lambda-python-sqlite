@@ -9,6 +9,9 @@ on:
 
 jobs:
   docker:
+    strategy:
+      matrix:
+        version: [3.8, 3.9, latest]
     runs-on: ubuntu-latest
     steps:
       - name: Set up Docker Buildx
@@ -18,19 +21,12 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Build and push 3.9
+      - name: Build and push ${{ matrix.version }}
         uses: docker/build-push-action@v3
         with:
           build-args: |
-            PYTHON_VERSION=3.9
+            PYTHON_VERSION=${{ matrix.version }}
           push: true
-          tags: lukewiwa/aws-lambda-python-sqlite:latest,lukewiwa/aws-lambda-python-sqlite:3.9
+          tags: lukewiwa/aws-lambda-python-sqlite:${{ matrix.version }}
 
-      - name: Build and push 3.8
-        uses: docker/build-push-action@v3
-        with:
-          build-args: |
-            PYTHON_VERSION=3.8
-          push: true
-          tags: lukewiwa/aws-lambda-python-sqlite:3.8
 
