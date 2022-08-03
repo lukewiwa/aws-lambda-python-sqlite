@@ -16,5 +16,6 @@ RUN sh ../sqlite/configure && make
 
 FROM public.ecr.aws/lambda/python:${PYTHON_VERSION}
 
+COPY --from=build sqlite/bld/.libs/libsqlite3.so /var/lang/lib/libsqlite3.so
 COPY --from=build sqlite/bld/.libs/libsqlite3.so.0 /var/lang/lib/libsqlite3.so.0
 COPY --from=build sqlite/bld/.libs/libsqlite3.so.0.8.6 /var/lang/lib/libsqlite3.so.0.8.6
