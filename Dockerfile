@@ -1,21 +1,24 @@
 ARG PYTHON_VERSION=3.9
 FROM public.ecr.aws/lambda/python:${PYTHON_VERSION} as build
 
-WORKDIR /sqlite/
-
-RUN yum groupinstall "Development Tools" -y && \
+RUN yum groupinstall -y "Development Tools" && \
     yum install -y tcl
 
-RUN curl -sSL https://www.sqlite.org/src/tarball/sqlite.tar.gz?r=release \
-        --output ./sqlite.tar.gz && \
-    tar xzf sqlite.tar.gz
+WORKDIR /
+RUN git clone --depth 1 --branch master https://github.com/coleifer/pysqlite3.git
 
-WORKDIR /sqlite/bld
-RUN sh ../sqlite/configure && make
+RUN curl -sSL https://www.sqlite.org/src/tarball/sqlite.tar.gz?r=release \
+    --output sqlite.tar.gz
+RUN tar xzf sqlite.tar.gz
+WORKDIR /sqlite
+RUN  ./configure && make sqlite3.c
+
+RUN cp /sqlite/sqlite3.[ch] /pysqlite3/
+WORKDIR /pysqlite3
+RUN python setup.py build_static build
 
 
 FROM public.ecr.aws/lambda/python:${PYTHON_VERSION}
+ARG PYTHON_VERSION
 
-COPY --from=build sqlite/bld/.libs/libsqlite3.so /var/lang/lib/libsqlite3.so
-COPY --from=build sqlite/bld/.libs/libsqlite3.so.0 /var/lang/lib/libsqlite3.so.0
-COPY --from=build sqlite/bld/.libs/libsqlite3.so.0.8.6 /var/lang/lib/libsqlite3.so.0.8.6
+COPY --from=build /pysqlite3/build/lib.linux-*/pysqlite3/_sqlite3.*.so /var/lang/lib/python${PYTHON_VERSION}/lib-dynload/
