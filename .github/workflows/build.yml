@@ -11,7 +11,7 @@ jobs:
   docker:
     strategy:
       matrix:
-        version: ["3.8", "3.9", "3.10"]
+        version: ["3.8", "3.9", "3.10", "3.11"]
     runs-on: ubuntu-latest
     steps:
       - name: Set up QEMU
